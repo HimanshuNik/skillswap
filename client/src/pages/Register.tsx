@@ -1,14 +1,23 @@
 import { Link } from "react-router-dom";
 import AuthLayout from "../components/auth/AuthLayout";
+import { useNavigate } from "react-router-dom";
 
 const Register = () => {
+  const navigate = useNavigate();
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    // Temporary frontend-only registration
+    navigate("/onboarding");
+  };
+
   return (
     <AuthLayout
       title="Create your account"
       description="Start exchanging skills and learning from people like you."
     >
-      <form className="space-y-5">
-
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label
             htmlFor="name"
@@ -62,27 +71,19 @@ const Register = () => {
         </div>
 
         <div className="flex items-start gap-3">
-          <input
-            id="terms"
-            type="checkbox"
-            className="mt-1 h-4 w-4"
-          />
+          <input id="terms" type="checkbox" className="mt-1 h-4 w-4" />
 
-          <label
-            htmlFor="terms"
-            className="text-sm leading-6 text-slate-600"
-          >
+          <label htmlFor="terms" className="text-sm leading-6 text-slate-600">
             I agree to the Terms of Service and Privacy Policy.
           </label>
         </div>
 
         <button
           type="submit"
-          className="w-full rounded-xl bg-slate-950 px-5 py-3.5 font-semibold text-white transition hover:bg-slate-800"
+          className="w-full rounded-xl bg-slate-950 px-4 py-3 font-semibold text-white transition hover:bg-slate-800"
         >
           Create account
         </button>
-
       </form>
 
       <p className="mt-8 text-center text-sm text-slate-600">
@@ -94,7 +95,6 @@ const Register = () => {
           Sign in
         </Link>
       </p>
-
     </AuthLayout>
   );
 };

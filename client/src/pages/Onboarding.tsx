@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 import OnboardingLayout from "../components/onboarding/OnboardingLayout";
 import ProfileStep from "../components/onboarding/ProfileStep";
 import TeachSkillsStep from "../components/onboarding/TeachSkillsStep";
 import LearnSkillsStep from "../components/onboarding/LearnSkillsStep";
 import AvailabilityStep from "../components/onboarding/AvailabilityStep";
+
 
 import type {
   OnboardingData,
@@ -15,6 +17,9 @@ import type {
 } from "../types/onboarding";
 
 const Onboarding = () => {
+
+   const navigate = useNavigate();
+
   const [step, setStep] = useState(1);
 
   const [onboardingData, setOnboardingData] =
@@ -95,9 +100,10 @@ const Onboarding = () => {
   };
 
   const finishOnboarding = () => {
-    console.log("Complete onboarding data:");
-    console.log(onboardingData);
-  };
+  console.log("Complete onboarding data:", onboardingData);
+
+  navigate("/dashboard");
+};
 
   return (
     <OnboardingLayout

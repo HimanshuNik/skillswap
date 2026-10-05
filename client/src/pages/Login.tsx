@@ -1,14 +1,23 @@
 import { Link } from "react-router-dom";
 import AuthLayout from "../components/auth/AuthLayout";
+import { useNavigate } from "react-router-dom";
 
 const Login = () => {
+  const navigate = useNavigate();
+
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+
+    // Temporary frontend-only login
+    navigate("/dashboard");
+  };
+
   return (
     <AuthLayout
       title="Welcome back"
       description="Sign in and continue learning with your SkillSwap community."
     >
-      <form className="space-y-5">
-
+      <form onSubmit={handleSubmit} className="space-y-5">
         <div>
           <label
             htmlFor="email"
@@ -27,7 +36,6 @@ const Login = () => {
 
         <div>
           <div className="mb-2 flex items-center justify-between">
-
             <label
               htmlFor="password"
               className="text-sm font-semibold text-slate-700"
@@ -41,7 +49,6 @@ const Login = () => {
             >
               Forgot password?
             </button>
-
           </div>
 
           <input
@@ -53,27 +60,19 @@ const Login = () => {
         </div>
 
         <div className="flex items-center gap-2">
-          <input
-            id="remember"
-            type="checkbox"
-            className="h-4 w-4"
-          />
+          <input id="remember" type="checkbox" className="h-4 w-4" />
 
-          <label
-            htmlFor="remember"
-            className="text-sm text-slate-600"
-          >
+          <label htmlFor="remember" className="text-sm text-slate-600">
             Remember me
           </label>
         </div>
 
         <button
           type="submit"
-          className="w-full rounded-xl bg-slate-950 px-5 py-3.5 font-semibold text-white transition hover:bg-slate-800"
+          className="w-full rounded-xl bg-slate-950 px-4 py-3 font-semibold text-white transition hover:bg-slate-800"
         >
           Sign in
         </button>
-
       </form>
 
       <p className="mt-8 text-center text-sm text-slate-600">
@@ -85,7 +84,6 @@ const Login = () => {
           Create one
         </Link>
       </p>
-
     </AuthLayout>
   );
 };
