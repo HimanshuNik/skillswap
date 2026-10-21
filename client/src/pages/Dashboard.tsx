@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import AppLayout from "../components/app/AppLayout";
 import MatchCard from "../components/matches/MatchCard";
 import SessionCard from "../components/sessions/SessionCard";
@@ -112,16 +113,31 @@ const upcomingSessions: UpcomingSession[] = [
 // --------------------
 
 const Dashboard = () => {
+  const [apiStatus, setApiStatus] = useState("Checking API...");
+
+  useEffect(() => {
+    const checkApi = async () => {
+      try {
+        const response = await fetch("http://localhost:5000/api/health");
+
+        const data = await response.json();
+
+        setApiStatus(data.message);
+      } catch {
+        setApiStatus("API connection failed");
+      }
+    };
+
+    checkApi();
+  }, []);
+
   return (
     <AppLayout>
       <div className="mx-auto max-w-7xl">
-
         {/* Welcome Section */}
 
         <div>
-          <p className="text-sm font-semibold text-emerald-600">
-            Dashboard
-          </p>
+          <p className="text-sm font-semibold text-emerald-600">Dashboard</p>
 
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
             Welcome back, John Wick 👋
@@ -130,6 +146,8 @@ const Dashboard = () => {
           <p className="mt-2 text-slate-500">
             Here's what's happening with your SkillSwap journey.
           </p>
+
+          <p className="mt-2 text-sm text-slate-500">API: {apiStatus}</p>
         </div>
 
         {/* Stats Section */}
@@ -221,7 +239,6 @@ const Dashboard = () => {
             ))}
           </div>
         </section>
-
       </div>
     </AppLayout>
   );
