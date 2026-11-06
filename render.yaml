@@ -1,0 +1,42 @@
+services:
+  # SkillSwap Web API Service
+  - type: web
+    name: skillswap-api
+    runtime: node
+    plan: standard
+    region: oregon
+    rootDir: server
+    buildCommand: npm ci && npx prisma contract emit && npm run build
+    startCommand: npm run start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 10000
+      - key: DATABASE_URL
+        fromDatabase:
+          name: skillswap-postgres
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: CSRF_SECRET
+        generateValue: true
+      - key: CORS_ORIGIN
+        value: https://skillswap.vercel.app
+      - key: JITSI_APP_ID
+        value: skillswap-prod
+      - key: JITSI_DOMAIN
+        value: meet.jit.si
+      - key: LOG_LEVEL
+        value: info
+
+databases:
+  # Managed PostgreSQL Database
+  - name: skillswap-postgres
+    plan: standard
+    region: oregon
+    postgresMajorVersion: 15
+    databaseName: skillswap
+    user: skillswap
+

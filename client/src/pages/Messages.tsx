@@ -1,245 +1,205 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from 'react';
+import { ChevronLeft, Search, Send, MessageSquare } from 'lucide-react';
+import AppLayout from '../components/app/AppLayout';
+import ConversationItem from '../components/messages/ConversationItem';
+import { useAuthStore } from '../store/useAuthStore';
+import {
+  useConversations,
+  useConversationMessages,
+  useSendMessage,
+  useMarkConversationAsRead,
+} from '../hooks/useConversations';
+import { useChatSocket } from '../hooks/useChatSocket';
+import { getSocket } from '../lib/socket';
 
-import AppLayout from "../components/app/AppLayout";
-import ConversationItem from "../components/messages/ConversationItem";
+function formatTime(isoString?: string | null): string {
+  if (!isoString) return '';
+  const date = new Date(isoString);
+  if (isNaN(date.getTime())) return '';
+  const now = new Date();
+  const isToday =
+    date.getDate() === now.getDate() &&
+    date.getMonth() === now.getMonth() &&
+    date.getFullYear() === now.getFullYear();
 
-type Conversation = {
-  id: number;
-  name: string;
-  initials: string;
-  lastMessage: string;
-  time: string;
-  unreadCount: number;
-};
-
-type Message = {
-  id: number;
-  conversationId: number;
-  text: string;
-  sender: "me" | "them";
-  time: string;
-};
-
-const initialConversations: Conversation[] = [
-  {
-    id: 1,
-    name: "Aman Sharma",
-    initials: "AS",
-    lastMessage: "Sounds good! See you tomorrow.",
-    time: "6:42 PM",
-    unreadCount: 2,
-  },
-  {
-    id: 2,
-    name: "Priya Verma",
-    initials: "PV",
-    lastMessage: "I'll share the Figma file.",
-    time: "4:15 PM",
-    unreadCount: 0,
-  },
-  {
-    id: 3,
-    name: "Rohan Mehta",
-    initials: "RM",
-    lastMessage: "Thanks for the React resources!",
-    time: "Yesterday",
-    unreadCount: 0,
-  },
-];
-
-const initialMessages: Message[] = [
-  {
-    id: 1,
-    conversationId: 1,
-    text: "Hey Aman! Are we still on for tomorrow?",
-    sender: "me",
-    time: "6:35 PM",
-  },
-  {
-    id: 2,
-    conversationId: 1,
-    text: "Yes! I'll show you the basics of Premiere Pro.",
-    sender: "them",
-    time: "6:38 PM",
-  },
-  {
-    id: 3,
-    conversationId: 1,
-    text: "Perfect. I can help you with React after that.",
-    sender: "me",
-    time: "6:40 PM",
-  },
-  {
-    id: 4,
-    conversationId: 1,
-    text: "Sounds good! See you tomorrow.",
-    sender: "them",
-    time: "6:42 PM",
-  },
-
-  {
-    id: 5,
-    conversationId: 2,
-    text: "Hey Priya, thanks for explaining components today.",
-    sender: "me",
-    time: "4:05 PM",
-  },
-  {
-    id: 6,
-    conversationId: 2,
-    text: "You're welcome! I'll share the Figma file.",
-    sender: "them",
-    time: "4:15 PM",
-  },
-
-  {
-    id: 7,
-    conversationId: 3,
-    text: "Here are those React resources we discussed.",
-    sender: "me",
-    time: "Yesterday",
-  },
-  {
-    id: 8,
-    conversationId: 3,
-    text: "Thanks for the React resources!",
-    sender: "them",
-    time: "Yesterday",
-  },
-];
+  if (isToday) {
+    return date.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+  }
+  return date.toLocaleDateString([], { month: 'short', day: 'numeric' });
+}
 
 const Messages = () => {
-  const [selectedConversationId, setSelectedConversationId] = useState<
-    number | null
-  >(null);
+  const { user } = useAuthStore();
+  const [selectedConversationId, setSelectedConversationId] = useState<number | null>(null);
+  const [mobileShowChat, setMobileShowChat] = useState(false);
+  const [messageInput, setMessageInput] = useState('');
+  const [conversationSearch, setConversationSearch] = useState('');
+  const [isSending, setIsSending] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [conversations, setConversations] =
-    useState<Conversation[]>(initialConversations);
+  // Queries
+  const { data: conversations = [], isLoading: isLoadingConversations } = useConversations();
 
-  const [messages, setMessages] = useState<Message[]>(initialMessages);
+  // If no conversation was explicitly selected yet, default to first available
+  const activeConversationId = selectedConversationId ?? (conversations.length > 0 ? conversations[0].id : null);
+
+  const { data: messagesData, isLoading: isLoadingMessages } =
+    useConversationMessages(activeConversationId);
+
+  // Mutations & Real-time Socket
+  const sendMessageMutation = useSendMessage();
+  const markAsReadMutation = useMarkConversationAsRead();
+  const {
+    peerIsTyping,
+    peerTypingName,
+    sendMessage: sendSocketMessage,
+    startTyping,
+    stopTyping,
+  } = useChatSocket(activeConversationId);
 
   const selectedConversation = conversations.find(
-    (conversation) => conversation.id === selectedConversationId,
+    (c) => c.id === activeConversationId
   );
 
-  const selectedMessages = messages.filter(
-    (message) => message.conversationId === selectedConversationId,
-  );
+  const messages = messagesData?.messages || [];
 
-  const [messageInput, setMessageInput] = useState("");
-
-  const [conversationSearch, setConversationSearch] = useState("");
+  // Scroll to bottom when messages change or conversation switches
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages.length, activeConversationId]);
 
   const filteredConversations = conversations.filter((conversation) =>
-    conversation.name
+    conversation.peer.name
       .toLowerCase()
-      .includes(conversationSearch.toLowerCase().trim()),
+      .includes(conversationSearch.toLowerCase().trim())
   );
-
-  const getLastMessage = (conversationId: number) => {
-    const conversationMessages = messages.filter(
-      (message) => message.conversationId === conversationId,
-    );
-
-    return conversationMessages[conversationMessages.length - 1];
-  };
 
   const handleSelectConversation = (conversationId: number) => {
     setSelectedConversationId(conversationId);
-
-    setConversations((currentConversations) =>
-      currentConversations.map((conversation) =>
-        conversation.id === conversationId
-          ? {
-              ...conversation,
-              unreadCount: 0,
-            }
-          : conversation,
-      ),
-    );
+    setMobileShowChat(true);
+    markAsReadMutation.mutate(conversationId);
   };
 
-  const handleSendMessage = () => {
-    const trimmedMessage = messageInput.trim();
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setMessageInput(e.target.value);
+    startTyping();
+    if (typingTimerRef.current) {
+      clearTimeout(typingTimerRef.current);
+    }
+    typingTimerRef.current = setTimeout(() => {
+      stopTyping();
+    }, 2000);
+  };
 
-    if (!trimmedMessage || selectedConversationId === null) {
-      return;
+  const handleSendMessage = async () => {
+    const trimmed = messageInput.trim();
+    if (!trimmed || activeConversationId === null || isSending) return;
+
+    setIsSending(true);
+    stopTyping();
+    if (typingTimerRef.current) {
+      clearTimeout(typingTimerRef.current);
     }
 
-    const newMessage: Message = {
-      id: Date.now(),
-      conversationId: selectedConversationId,
-      text: trimmedMessage,
-      sender: "me",
-      time: new Date().toLocaleTimeString([], {
-        hour: "2-digit",
-        minute: "2-digit",
-      }),
-    };
-
-    setMessages((currentMessages) => [...currentMessages, newMessage]);
-
-    setMessageInput("");
+    try {
+      const socket = getSocket();
+      if (socket.connected) {
+        await sendSocketMessage(trimmed);
+      } else {
+        await sendMessageMutation.mutateAsync({
+          conversationId: activeConversationId,
+          content: trimmed,
+        });
+      }
+      setMessageInput('');
+    } catch (err) {
+      console.error('Failed to send message:', err);
+    } finally {
+      setIsSending(false);
+    }
   };
+
+  const isReadOnly = selectedConversation?.status === 'READ_ONLY';
 
   return (
     <AppLayout>
       <div className="mx-auto max-w-7xl">
         <div>
           <p className="text-sm font-semibold text-emerald-600">Messages</p>
-
           <h1 className="mt-2 text-3xl font-bold tracking-tight text-slate-950">
             Conversations
           </h1>
 
-          <div className="mt-8 grid min-h-[600px] overflow-hidden rounded-2xl border border-slate-200 bg-white lg:grid-cols-[320px_1fr]">
-            {/* Conversation List */}
-
-            <div className="border-r border-slate-200">
+          <div className="mt-8 flex h-[calc(100vh-240px)] min-h-[560px] max-h-[800px] overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-xs">
+            {/* Conversation List Sidebar */}
+            <div
+              className={`w-full flex-col border-r border-slate-200 lg:flex lg:w-[340px] shrink-0 ${
+                mobileShowChat ? 'hidden lg:flex' : 'flex'
+              }`}
+            >
               <div className="border-b border-slate-200 p-4">
-                <input
-                  type="text"
-                  value={conversationSearch}
-                  onChange={(event) =>
-                    setConversationSearch(event.target.value)
-                  }
-                  placeholder="Search conversations..."
-                  className="w-full rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
-                />
+                <div className="relative">
+                  <div className="pointer-events-none absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                    <Search className="h-4 w-4" aria-hidden="true" />
+                  </div>
+                  <input
+                    type="text"
+                    value={conversationSearch}
+                    onChange={(event) => setConversationSearch(event.target.value)}
+                    placeholder="Search conversations..."
+                    aria-label="Search conversations"
+                    className="w-full rounded-xl border border-slate-300 bg-slate-50/50 py-2.5 pl-9 pr-4 text-sm text-slate-900 outline-none transition focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-500/10"
+                  />
+                </div>
               </div>
 
-              <div>
-                {filteredConversations.length > 0 ? (
-                  filteredConversations.map((conversation) => {
-                    const lastMessage = getLastMessage(conversation.id);
-
-                    return (
-                      <ConversationItem
-                        key={conversation.id}
-                        name={conversation.name}
-                        initials={conversation.initials}
-                        lastMessage={
-                          lastMessage?.text ?? conversation.lastMessage
-                        }
-                        time={lastMessage?.time ?? conversation.time}
-                        unreadCount={conversation.unreadCount}
-                        isActive={selectedConversationId === conversation.id}
-                        onClick={() =>
-                          handleSelectConversation(conversation.id)
-                        }
-                      />
-                    );
-                  })
+              <div className="flex-1 overflow-y-auto">
+                {isLoadingConversations ? (
+                  <div className="space-y-3 p-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="animate-pulse flex items-center gap-3">
+                        <div className="h-11 w-11 rounded-full bg-slate-200" />
+                        <div className="flex-1 space-y-2">
+                          <div className="h-4 w-28 rounded bg-slate-200" />
+                          <div className="h-3 w-40 rounded bg-slate-200" />
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : filteredConversations.length > 0 ? (
+                  filteredConversations.map((conversation) => (
+                    <ConversationItem
+                      key={conversation.id}
+                      name={conversation.peer.name}
+                      initials={conversation.peer.initials}
+                      lastMessage={
+                        conversation.latestMessage?.content ||
+                        (conversation.swapRequest
+                          ? `Swap: ${conversation.swapRequest.senderSkillName} ↔ ${conversation.swapRequest.receiverSkillName}`
+                          : 'Conversation started')
+                      }
+                      time={formatTime(
+                        conversation.latestMessage?.createdAt || conversation.updatedAt
+                      )}
+                      unreadCount={conversation.unreadCount}
+                      isActive={activeConversationId === conversation.id}
+                      isOnline={conversation.peer.isOnline}
+                      onClick={() => handleSelectConversation(conversation.id)}
+                    />
+                  ))
                 ) : (
-                  <div className="px-4 py-10 text-center">
-                    <div className="text-3xl">🔍</div>
-
+                  <div className="px-4 py-16 text-center">
+                    <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                      <MessageSquare className="h-6 w-6" />
+                    </div>
                     <p className="mt-3 font-semibold text-slate-800">
-                      No conversations found
+                      {conversationSearch ? 'No matches found' : 'No conversations yet'}
                     </p>
-
-                    <p className="mt-1 text-sm text-slate-500">
-                      Try searching for another person.
+                    <p className="mt-1 text-xs text-slate-500 max-w-[240px] mx-auto">
+                      {conversationSearch
+                        ? 'Try searching with a different name.'
+                        : 'Accepted skill swaps automatically unlock direct messaging.'}
                     </p>
                   </div>
                 )}
@@ -247,117 +207,196 @@ const Messages = () => {
             </div>
 
             {/* Chat Area */}
-
             {selectedConversation ? (
-              <div className="flex min-w-0 flex-col">
+              <div
+                className={`w-full min-w-0 flex-col bg-white lg:flex flex-1 ${
+                  mobileShowChat ? 'flex' : 'hidden lg:flex'
+                }`}
+              >
                 {/* Chat Header */}
+                <div className="flex items-center justify-between border-b border-slate-200 p-4">
+                  <div className="flex items-center gap-3 min-w-0">
+                    <button
+                      type="button"
+                      onClick={() => setMobileShowChat(false)}
+                      aria-label="Back to conversations list"
+                      className="lg:hidden shrink-0 rounded-xl p-2 text-slate-600 hover:bg-slate-100 transition focus-visible:ring-2 focus-visible:ring-emerald-500"
+                    >
+                      <ChevronLeft className="h-5 w-5" />
+                    </button>
 
-                <div className="flex items-center gap-3 border-b border-slate-200 p-4">
-                  <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-950 text-sm font-bold text-white">
-                    {selectedConversation.initials}
+                    <div className="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-slate-950 text-sm font-bold text-white shadow-xs">
+                      {selectedConversation.peer.initials}
+                      {selectedConversation.peer.isOnline && (
+                        <span
+                          className="absolute bottom-0 right-0 h-3 w-3 rounded-full border-2 border-white bg-emerald-500"
+                          title="Online"
+                        />
+                      )}
+                    </div>
+
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-2">
+                        <h2 className="truncate font-bold text-slate-950">
+                          {selectedConversation.peer.name}
+                        </h2>
+                        {selectedConversation.peer.isOnline && (
+                          <span className="shrink-0 rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-semibold text-emerald-600">
+                            Online
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="truncate text-xs text-slate-500">
+                        {selectedConversation.swapRequest
+                          ? `Exchange: ${selectedConversation.swapRequest.senderSkillName} ↔ ${selectedConversation.swapRequest.receiverSkillName}`
+                          : 'SkillSwap Connection'}
+                      </p>
+                    </div>
                   </div>
 
-                  <div>
-                    <h2 className="font-bold text-slate-950">
-                      {selectedConversation.name}
-                    </h2>
-
-                    <p className="text-xs text-slate-500">
-                      SkillSwap connection
-                    </p>
-                  </div>
+                  {isReadOnly && (
+                    <span className="shrink-0 rounded-full bg-slate-100 px-3 py-1 text-xs font-medium text-slate-600">
+                      Archived (Read-Only)
+                    </span>
+                  )}
                 </div>
 
-                {/* Messages */}
+                {/* Messages Body */}
+                <div className="flex-1 space-y-4 overflow-y-auto bg-slate-50/50 p-4 sm:p-5">
+                  {isLoadingMessages ? (
+                    <div className="flex h-full items-center justify-center">
+                      <div className="text-sm text-slate-400">Loading messages...</div>
+                    </div>
+                  ) : messages.length > 0 ? (
+                    <>
+                      {messages.map((message) => {
+                        const isMine = message.senderId === user?.id;
 
-                <div className="flex-1 space-y-4 overflow-y-auto bg-slate-50/50 p-5">
-                  {selectedMessages.length > 0 ? (
-                    selectedMessages.map((message) => {
-                      const isMine = message.sender === "me";
-
-                      return (
-                        <div
-                          key={message.id}
-                          className={`flex ${
-                            isMine ? "justify-end" : "justify-start"
-                          }`}
-                        >
+                        return (
                           <div
-                            className={`max-w-[75%] rounded-2xl px-4 py-3 ${
-                              isMine
-                                ? "rounded-br-md bg-slate-950 text-white"
-                                : "rounded-bl-md border border-slate-200 bg-white text-slate-800"
-                            }`}
+                            key={message.id}
+                            className={`flex ${isMine ? 'justify-end' : 'justify-start'}`}
                           >
-                            <p className="text-sm leading-6">{message.text}</p>
+                            <div
+                              className={`max-w-[85%] sm:max-w-[75%] rounded-2xl px-4 py-3 shadow-xs ${
+                                isMine
+                                  ? 'rounded-br-md bg-slate-950 text-white'
+                                  : 'rounded-bl-md border border-slate-200 bg-white text-slate-800'
+                              }`}
+                            >
+                              <p className="whitespace-pre-wrap break-words text-sm leading-6">
+                                {message.content}
+                              </p>
 
-                            <p className="mt-1 text-right text-xs text-slate-400">
-                              {message.time}
-                            </p>
+                              <div
+                                className={`mt-1 flex items-center justify-end gap-1 text-[11px] ${
+                                  isMine ? 'text-slate-400' : 'text-slate-400'
+                                }`}
+                              >
+                                <span>{formatTime(message.createdAt)}</span>
+                                {isMine && (
+                                  <span
+                                    title={message.readAt ? `Read ${formatTime(message.readAt)}` : 'Delivered'}
+                                    className={message.readAt ? 'text-emerald-400 font-bold' : 'text-slate-500'}
+                                  >
+                                    {message.readAt ? '✓✓' : '✓'}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
                           </div>
-                        </div>
-                      );
-                    })
+                        );
+                      })}
+                      <div ref={messagesEndRef} />
+                    </>
                   ) : (
                     <div className="flex h-full items-center justify-center">
-                      <div className="text-center">
+                      <div className="text-center px-4">
                         <div className="text-4xl">👋</div>
-
-                        <p className="mt-4 text-sm text-slate-500">
-                          Start your conversation with{" "}
-                          {selectedConversation.name}.
+                        <p className="mt-4 font-semibold text-slate-800">
+                          Start the conversation!
+                        </p>
+                        <p className="mt-1 text-xs text-slate-500 max-w-sm">
+                          Say hi to {selectedConversation.peer.name} and coordinate your skill exchange.
                         </p>
                       </div>
                     </div>
                   )}
                 </div>
 
-                {/* Message Input */}
-
-                <div className="border-t border-slate-200 p-4">
-                  <form
-                    onSubmit={(event) => {
-                      event.preventDefault();
-                      handleSendMessage();
-                    }}
-                    className="flex gap-3"
+                {/* Typing Indicator Bar */}
+                {peerIsTyping && (
+                  <div
+                    aria-live="polite"
+                    className="flex items-center gap-2 border-t border-slate-100 bg-slate-50/80 px-5 py-2 text-xs italic text-emerald-600"
                   >
-                    <input
-                      type="text"
-                      value={messageInput}
-                      onChange={(event) => setMessageInput(event.target.value)}
-                      placeholder="Type a message..."
-                      className="min-w-0 flex-1 rounded-xl border border-slate-300 px-4 py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10"
-                    />
+                    <span className="flex gap-1" aria-hidden="true">
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-bounce" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.2s]" />
+                      <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-bounce [animation-delay:0.4s]" />
+                    </span>
+                    <span>{peerTypingName || 'Connection'} is typing...</span>
+                  </div>
+                )}
 
-                    <button
-                      type="submit"
-                      className="rounded-xl bg-slate-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-slate-800"
+                {/* Message Input Bar */}
+                <div className="border-t border-slate-200 bg-white p-3 sm:p-4">
+                  {isReadOnly ? (
+                    <p className="text-center text-xs text-slate-500 py-2">
+                      This conversation is read-only because the skill swap is closed.
+                    </p>
+                  ) : (
+                    <form
+                      onSubmit={(event) => {
+                        event.preventDefault();
+                        handleSendMessage();
+                      }}
+                      className="flex items-center gap-2 sm:gap-3"
                     >
-                      Send
-                    </button>
-                  </form>
+                      <input
+                        type="text"
+                        value={messageInput}
+                        onChange={handleInputChange}
+                        placeholder="Type a message..."
+                        aria-label="Type a message"
+                        disabled={isSending}
+                        maxLength={2000}
+                        className="min-w-0 flex-1 rounded-xl border border-slate-300 px-4 py-2.5 sm:py-3 text-sm outline-none transition focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 disabled:bg-slate-50"
+                      />
+
+                      <button
+                        type="submit"
+                        disabled={!messageInput.trim() || isSending}
+                        aria-label="Send message"
+                        className="inline-flex items-center gap-1.5 rounded-xl bg-slate-950 px-4 sm:px-6 py-2.5 sm:py-3 text-sm font-semibold text-white transition hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 focus-visible:ring-2 focus-visible:ring-emerald-500"
+                      >
+                        <Send className="h-4 w-4" />
+                        <span className="hidden sm:inline">{isSending ? 'Sending...' : 'Send'}</span>
+                      </button>
+                    </form>
+                  )}
                 </div>
               </div>
             ) : (
-              <div className="flex items-center justify-center p-8">
+              <div className="hidden lg:flex flex-1 items-center justify-center p-8">
                 <div className="text-center">
-                  <div className="text-4xl">💬</div>
-
+                  <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-slate-100 text-slate-400">
+                    <MessageSquare className="h-7 w-7" />
+                  </div>
                   <h2 className="mt-4 font-bold text-slate-950">
                     Select a conversation
                   </h2>
-
                   <p className="mt-2 text-sm text-slate-500">
-                    Choose someone from the conversation list to start chatting.
+                    Choose someone from the list to start chatting.
                   </p>
                 </div>
               </div>
             )}
           </div>
 
-          <p className="mt-2 text-slate-500">
-            Chat with your SkillSwap connections.
+          <p className="mt-2 text-sm text-slate-500">
+            Real-time chat with your SkillSwap connections.
           </p>
         </div>
       </div>

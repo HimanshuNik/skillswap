@@ -1,0 +1,1119 @@
+[
+  {
+    "id": "column.public.Notification.linkUrl",
+    "label": "Add column \"linkUrl\" to \"Notification\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "linkUrl",
+        "table": "Notification"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"linkUrl\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Notification",
+          "linkUrl"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"linkUrl\"",
+        "sql": "ALTER TABLE \"public\".\"Notification\" ADD COLUMN \"linkUrl\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"linkUrl\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Notification",
+          "linkUrl"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Session.cancellationReason",
+    "label": "Add column \"cancellationReason\" to \"Session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "cancellationReason",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"cancellationReason\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "cancellationReason"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"cancellationReason\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ADD COLUMN \"cancellationReason\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"cancellationReason\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "cancellationReason"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Session.cancelledBy",
+    "label": "Add column \"cancelledBy\" to \"Session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "cancelledBy",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"cancelledBy\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "cancelledBy"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"cancelledBy\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ADD COLUMN \"cancelledBy\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"cancelledBy\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "cancelledBy"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Session.completedAt",
+    "label": "Add column \"completedAt\" to \"Session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "completedAt",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"completedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "completedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"completedAt\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ADD COLUMN \"completedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"completedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "completedAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Session.completedBy",
+    "label": "Add column \"completedBy\" to \"Session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "completedBy",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"completedBy\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "completedBy"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"completedBy\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ADD COLUMN \"completedBy\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"completedBy\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "completedBy"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Session.completionConfirmedAt",
+    "label": "Add column \"completionConfirmedAt\" to \"Session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "completionConfirmedAt",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"completionConfirmedAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "completionConfirmedAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"completionConfirmedAt\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ADD COLUMN \"completionConfirmedAt\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"completionConfirmedAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "completionConfirmedAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Session.disputedBy",
+    "label": "Add column \"disputedBy\" to \"Session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "disputedBy",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"disputedBy\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "disputedBy"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"disputedBy\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ADD COLUMN \"disputedBy\" int4"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"disputedBy\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "disputedBy"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Session.meetingProvider",
+    "label": "Add column \"meetingProvider\" to \"Session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "meetingProvider",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"meetingProvider\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "meetingProvider"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"meetingProvider\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ADD COLUMN \"meetingProvider\" text DEFAULT 'Jitsi'"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"meetingProvider\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "meetingProvider"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Session.meetingRoomId",
+    "label": "Add column \"meetingRoomId\" to \"Session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "meetingRoomId",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"meetingRoomId\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "meetingRoomId"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"meetingRoomId\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ADD COLUMN \"meetingRoomId\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"meetingRoomId\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "meetingRoomId"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Session.proposedEnd",
+    "label": "Add column \"proposedEnd\" to \"Session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "proposedEnd",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"proposedEnd\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "proposedEnd"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"proposedEnd\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ADD COLUMN \"proposedEnd\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"proposedEnd\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "proposedEnd"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Session.proposedStart",
+    "label": "Add column \"proposedStart\" to \"Session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "proposedStart",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"proposedStart\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "proposedStart"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"proposedStart\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ADD COLUMN \"proposedStart\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"proposedStart\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "proposedStart"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Session.rescheduleReason",
+    "label": "Add column \"rescheduleReason\" to \"Session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "rescheduleReason",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"rescheduleReason\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "rescheduleReason"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"rescheduleReason\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ADD COLUMN \"rescheduleReason\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"rescheduleReason\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "rescheduleReason"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Session.scheduledEnd",
+    "label": "Add column \"scheduledEnd\" to \"Session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "scheduledEnd",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"scheduledEnd\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "scheduledEnd"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"scheduledEnd\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ADD COLUMN \"scheduledEnd\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"scheduledEnd\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "scheduledEnd"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Session.scheduledStart",
+    "label": "Add column \"scheduledStart\" to \"Session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "scheduledStart",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"scheduledStart\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "scheduledStart"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"scheduledStart\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ADD COLUMN \"scheduledStart\" timestamptz"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"scheduledStart\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "scheduledStart"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.Session.timezone",
+    "label": "Add column \"timezone\" to \"Session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "timezone",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"timezone\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "timezone"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"timezone\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ADD COLUMN \"timezone\" text DEFAULT 'UTC'"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"timezone\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "timezone"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.UserAvailability.createdAt",
+    "label": "Add column \"createdAt\" to \"UserAvailability\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "createdAt",
+        "table": "UserAvailability"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"createdAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "UserAvailability",
+          "createdAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"createdAt\"",
+        "sql": "ALTER TABLE \"public\".\"UserAvailability\" ADD COLUMN \"createdAt\" timestamptz DEFAULT (now()) NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"createdAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "UserAvailability",
+          "createdAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.UserLearningSkill.createdAt",
+    "label": "Add column \"createdAt\" to \"UserLearningSkill\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "createdAt",
+        "table": "UserLearningSkill"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"createdAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "UserLearningSkill",
+          "createdAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"createdAt\"",
+        "sql": "ALTER TABLE \"public\".\"UserLearningSkill\" ADD COLUMN \"createdAt\" timestamptz DEFAULT (now()) NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"createdAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "UserLearningSkill",
+          "createdAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.UserTeachingSkill.createdAt",
+    "label": "Add column \"createdAt\" to \"UserTeachingSkill\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "createdAt",
+        "table": "UserTeachingSkill"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"createdAt\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "UserTeachingSkill",
+          "createdAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"createdAt\"",
+        "sql": "ALTER TABLE \"public\".\"UserTeachingSkill\" ADD COLUMN \"createdAt\" timestamptz DEFAULT (now()) NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"createdAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "UserTeachingSkill",
+          "createdAt"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "column.public.UserTeachingSkill.description",
+    "label": "Add column \"description\" to \"UserTeachingSkill\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "description",
+        "table": "UserTeachingSkill"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"description\" is missing",
+        "sql": "SELECT NOT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "UserTeachingSkill",
+          "description"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "add column \"description\"",
+        "sql": "ALTER TABLE \"public\".\"UserTeachingSkill\" ADD COLUMN \"description\" text"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"description\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "UserTeachingSkill",
+          "description"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alterNullability.dropNotNull.Session.scheduledAt",
+    "label": "Drop NOT NULL on \"Session\".\"scheduledAt\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "scheduledAt",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"scheduledAt\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "scheduledAt"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "drop NOT NULL on \"scheduledAt\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ALTER COLUMN \"scheduledAt\" DROP NOT NULL"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"scheduledAt\" is nullable",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"is_nullable\" = $4)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "scheduledAt",
+          "YES"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "setDefault.Session.status",
+    "label": "Set default on \"Session\".\"status\"",
+    "operationClass": "widening",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "column",
+        "name": "status",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure column \"status\" exists",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "status"
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "set default on \"status\"",
+        "sql": "ALTER TABLE \"public\".\"Session\" ALTER COLUMN \"status\" SET DEFAULT 'SCHEDULED'"
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify column \"status\" has a default",
+        "sql": "SELECT EXISTS (SELECT 1 AS \"one\" FROM \"information_schema\".\"columns\" WHERE (\"table_schema\" = $1 AND \"table_name\" = $2 AND \"column_name\" = $3 AND \"column_default\" IS NOT NULL)) AS \"result\"",
+        "params": [
+          "public",
+          "Session",
+          "status"
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Notification.Notification_isRead_idx_a2737ae3",
+    "label": "Create index \"Notification_isRead_idx_a2737ae3\" on \"Notification\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Notification_isRead_idx_a2737ae3",
+        "table": "Notification"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Notification_isRead_idx_a2737ae3\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Notification_isRead_idx_a2737ae3\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Notification_isRead_idx_a2737ae3\"",
+        "sql": "CREATE INDEX \"Notification_isRead_idx_a2737ae3\" ON \"public\".\"Notification\" (\"isRead\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Notification_isRead_idx_a2737ae3\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Notification_isRead_idx_a2737ae3\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Session.Session_status_idx_e98638ab",
+    "label": "Create index \"Session_status_idx_e98638ab\" on \"Session\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Session_status_idx_e98638ab",
+        "table": "Session"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Session_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Session_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Session_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"Session_status_idx_e98638ab\" ON \"public\".\"Session\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Session_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Session_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.Skill.Skill_category_idx_f2600f8e",
+    "label": "Create index \"Skill_category_idx_f2600f8e\" on \"Skill\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "Skill_category_idx_f2600f8e",
+        "table": "Skill"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"Skill_category_idx_f2600f8e\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Skill_category_idx_f2600f8e\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"Skill_category_idx_f2600f8e\"",
+        "sql": "CREATE INDEX \"Skill_category_idx_f2600f8e\" ON \"public\".\"Skill\" (\"category\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"Skill_category_idx_f2600f8e\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"Skill_category_idx_f2600f8e\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.SwapRequest.SwapRequest_status_idx_e98638ab",
+    "label": "Create index \"SwapRequest_status_idx_e98638ab\" on \"SwapRequest\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "SwapRequest_status_idx_e98638ab",
+        "table": "SwapRequest"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"SwapRequest_status_idx_e98638ab\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SwapRequest_status_idx_e98638ab\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"SwapRequest_status_idx_e98638ab\"",
+        "sql": "CREATE INDEX \"SwapRequest_status_idx_e98638ab\" ON \"public\".\"SwapRequest\" (\"status\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"SwapRequest_status_idx_e98638ab\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"SwapRequest_status_idx_e98638ab\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.User.User_email_idx_46df9cad",
+    "label": "Create index \"User_email_idx_46df9cad\" on \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "User_email_idx_46df9cad",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"User_email_idx_46df9cad\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"User_email_idx_46df9cad\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"User_email_idx_46df9cad\"",
+        "sql": "CREATE INDEX \"User_email_idx_46df9cad\" ON \"public\".\"User\" (\"email\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"User_email_idx_46df9cad\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"User_email_idx_46df9cad\""
+        ]
+      }
+    ]
+  },
+  {
+    "id": "index.User.User_username_idx_b719d535",
+    "label": "Create index \"User_username_idx_b719d535\" on \"User\"",
+    "operationClass": "additive",
+    "target": {
+      "id": "postgres",
+      "details": {
+        "schema": "public",
+        "objectType": "index",
+        "name": "User_username_idx_b719d535",
+        "table": "User"
+      }
+    },
+    "precheck": [
+      {
+        "description": "ensure index \"User_username_idx_b719d535\" does not exist",
+        "sql": "SELECT (to_regclass($1)) IS NULL AS \"result\"",
+        "params": [
+          "\"public\".\"User_username_idx_b719d535\""
+        ]
+      }
+    ],
+    "execute": [
+      {
+        "description": "create index \"User_username_idx_b719d535\"",
+        "sql": "CREATE INDEX \"User_username_idx_b719d535\" ON \"public\".\"User\" (\"username\")",
+        "params": []
+      }
+    ],
+    "postcheck": [
+      {
+        "description": "verify index \"User_username_idx_b719d535\" exists",
+        "sql": "SELECT (to_regclass($1)) IS NOT NULL AS \"result\"",
+        "params": [
+          "\"public\".\"User_username_idx_b719d535\""
+        ]
+      }
+    ]
+  }
+]

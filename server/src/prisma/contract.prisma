@@ -1,16 +1,986 @@
 // use prisma-8
 
 model User {
-  id           Int      @id @default(autoincrement())
-  email        String   @unique
-  username     String   @unique
-  name         String
-  passwordHash String
+  id                      Int                     @id @default(autoincrement())
+  email                   String                  @unique
+  username                String                  @unique
+  name                    String
+  passwordHash            String
+  bio                     String?
+  location                String?
+  avatarUrl               String?
+  timezone                String?                 @default("UTC")
+  isOnboarded             Boolean                 @default(false)
+  isActive                Boolean                 @default(true)
+  deletedAt               TimestamptzString?
+  averageRating           Float                   @default(0.0)
+  totalReviews            Int                     @default(0)
+  completedSessions       Int                     @default(0)
+  passwordResetHash       String?
+  passwordResetExpiresAt  TimestamptzString?
+  role                    String                  @default("USER") // USER, MODERATOR, ADMIN
+  isSuspended             Boolean                 @default(false)
+  suspendedAt             TimestamptzString?
+  suspendedReason         String?
+  suspendedBy             Int?
+  subscriptionTier        String                  @default("FREE") // FREE, PRO, PREMIUM
 
-  bio          String?
-  location     String?
-  avatarUrl    String?
+  createdAt               TimestamptzString       @default(now())
 
-  createdAt    TimestamptzString @default(now())
-  updatedAt    temporal.updatedAtString()
+  updatedAt               temporal.updatedAtString()
+
+  @@index([email])
+  @@index([username])
 }
+
+model Skill {
+  id             Int                 @id @default(autoincrement())
+  name           String              @unique
+  category       String
+  description    String?
+  isDisabled     Boolean             @default(false)
+  createdAt      TimestamptzString   @default(now())
+
+  @@index([category])
+  @@index([isDisabled])
+}
+
+model UserTeachingSkill {
+  id               Int                 @id @default(autoincrement())
+  userId           Int
+  skillId          Int
+  proficiencyLevel String              // Beginner, Intermediate, Advanced, Expert
+  description      String?
+  createdAt        TimestamptzString   @default(now())
+
+  user             User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill            Skill               @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+  @@index([userId])
+  @@index([skillId])
+}
+
+model UserLearningSkill {
+  id          Int                 @id @default(autoincrement())
+  userId      Int
+  skillId     Int
+  targetLevel String              // Beginner, Intermediate, Advanced
+  createdAt   TimestamptzString   @default(now())
+
+  user        User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill       Skill               @relation(fields: [skillId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, skillId])
+  @@index([userId])
+  @@index([skillId])
+}
+
+model UserAvailability {
+  id        Int                 @id @default(autoincrement())
+  userId    Int
+  dayOfWeek String              // Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday
+  timeSlot  String              // Morning, Afternoon, Evening
+  createdAt TimestamptzString   @default(now())
+
+  user      User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, dayOfWeek, timeSlot])
+  @@index([userId])
+}
+
+model SwapRequest {
+  id              Int                 @id @default(autoincrement())
+  senderId        Int
+  receiverId      Int
+  senderSkillId   Int
+  receiverSkillId Int
+  status          String              @default("PENDING") // PENDING, ACCEPTED, REJECTED, CANCELLED, IN_PROGRESS, COMPLETED, DISPUTED
+  message         String?
+
+  createdAt       TimestamptzString   @default(now())
+  updatedAt       temporal.updatedAtString()
+
+  sender          User                @relation("SentRequests", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver        User                @relation("ReceivedRequests", fields: [receiverId], references: [id], onDelete: Cascade)
+  senderSkill     Skill               @relation("SenderSkill", fields: [senderSkillId], references: [id], onDelete: Restrict)
+  receiverSkill   Skill               @relation("ReceiverSkill", fields: [receiverSkillId], references: [id], onDelete: Restrict)
+
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([status])
+}
+
+model Conversation {
+  id             Int                 @id @default(autoincrement())
+  swapRequestId  Int?
+  status         String              @default("ACTIVE") // ACTIVE, READ_ONLY
+
+  createdAt      TimestamptzString   @default(now())
+  updatedAt      temporal.updatedAtString()
+
+  swapRequest    SwapRequest?        @relation(fields: [swapRequestId], references: [id], onDelete: SetNull)
+
+  @@index([swapRequestId])
+}
+
+model ConversationParticipant {
+  id              Int                 @id @default(autoincrement())
+  conversationId  Int
+  userId          Int
+  joinedAt        TimestamptzString   @default(now())
+  lastReadAt      TimestamptzString?
+
+  conversation    Conversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([conversationId, userId])
+  @@index([conversationId])
+  @@index([userId])
+}
+
+model Message {
+  id              Int                 @id @default(autoincrement())
+  conversationId  Int
+  senderId        Int
+  content         String
+  readAt          TimestamptzString?
+
+  createdAt       TimestamptzString   @default(now())
+
+  conversation    Conversation        @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender          User                @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@index([senderId])
+}
+
+model Session {
+  id                    Int                 @id @default(autoincrement())
+  swapRequestId         Int
+  teacherId             Int
+  learnerId             Int
+  skillId               Int
+  scheduledAt           TimestamptzString?
+  scheduledStart        TimestamptzString?
+  scheduledEnd          TimestamptzString?
+  duration              Int                 @default(60) // minutes
+  timezone              String?             @default("UTC")
+  status                String              @default("REQUESTED") // SCHEDULED, IN_PROGRESS, COMPLETION_PENDING, COMPLETED, CANCELLED, DISPUTED, RESCHEDULE_PROPOSED
+  meetingProvider       String?             @default("Jitsi")
+  meetingRoomId         String?
+  meetingUrl            String?
+  notes                 String?
+
+  rescheduledBy         Int?
+  proposedAt            TimestamptzString?
+  proposedStart         TimestamptzString?
+  proposedEnd           TimestamptzString?
+  rescheduleReason      String?
+
+  completedBy           Int?
+  completedAt           TimestamptzString?
+  completionConfirmedAt TimestamptzString?
+
+  disputedBy            Int?
+  disputeReason         String?
+
+  cancelledBy           Int?
+  cancellationReason    String?
+
+  createdAt             TimestamptzString   @default(now())
+  updatedAt             temporal.updatedAtString()
+
+  swapRequest           SwapRequest         @relation(fields: [swapRequestId], references: [id], onDelete: Cascade)
+  teacher               User                @relation("TeacherUser", fields: [teacherId], references: [id], onDelete: Cascade)
+  learner               User                @relation("LearnerUser", fields: [learnerId], references: [id], onDelete: Cascade)
+  skill                 Skill               @relation(fields: [skillId], references: [id], onDelete: Restrict)
+
+  @@index([swapRequestId])
+  @@index([teacherId])
+  @@index([learnerId])
+  @@index([skillId])
+  @@index([status])
+}
+
+model Review {
+  id          Int                 @id @default(autoincrement())
+  sessionId   Int
+  reviewerId  Int
+  revieweeId  Int
+  rating      Int                 // 1 to 5
+  comment     String?
+
+  createdAt   TimestamptzString   @default(now())
+  updatedAt   temporal.updatedAtString()
+
+  session     Session             @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  reviewer    User                @relation("ReviewerUser", fields: [reviewerId], references: [id], onDelete: Cascade)
+  reviewee    User                @relation("RevieweeUser", fields: [revieweeId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, reviewerId])
+  @@index([sessionId])
+  @@index([reviewerId])
+  @@index([revieweeId])
+}
+
+model Notification {
+  id                Int                 @id @default(autoincrement())
+  userId            Int
+  type              String              // SWAP_REQUEST, SWAP_ACCEPTED, SESSION_SCHEDULED, SESSION_REMINDER, REVIEW_RECEIVED, MESSAGE_RECEIVED
+  title             String
+  message           String
+  isRead            Boolean             @default(false)
+  linkUrl           String?
+  referenceId       Int?
+  referenceType     String?
+  relatedEntityType String?
+  relatedEntityId   Int?
+  readAt            TimestamptzString?
+  createdAt         TimestamptzString   @default(now())
+
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([isRead])
+  @@index([userId, isRead])
+  @@index([userId, createdAt])
+}
+
+model UserNotificationPreference {
+  id                 Int               @id @default(autoincrement())
+  userId             Int               @unique
+  swapRequests       Boolean           @default(true)
+  messages           Boolean           @default(true)
+  sessions           Boolean           @default(true)
+  reviews            Boolean           @default(true)
+  emailAlerts        Boolean           @default(true)
+  pushEnabled        Boolean           @default(true)
+  pushSwapRequests   Boolean           @default(true)
+  pushMessages       Boolean           @default(true)
+  pushSessions       Boolean           @default(true)
+  pushReminders      Boolean           @default(true)
+  pushGroupActivity  Boolean           @default(true)
+
+  createdAt          TimestamptzString @default(now())
+  updatedAt          temporal.updatedAtString()
+
+  user               User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model UserReport {
+  id              Int                 @id @default(autoincrement())
+  reporterId      Int
+  reportedId      Int
+  targetType      String              // USER, REVIEW, MESSAGE, SESSION
+  targetId        Int?
+  category        String              // HARASSMENT, SPAM, INAPPROPRIATE, NO_SHOW, FRAUD, OTHER
+  reason          String
+  status          String              @default("OPEN") // OPEN, UNDER_REVIEW, RESOLVED, DISMISSED
+  resolutionNotes String?
+  resolvedBy      Int?
+  resolvedAt      TimestamptzString?
+  createdAt       TimestamptzString   @default(now())
+  updatedAt       temporal.updatedAtString()
+
+  reporter        User                @relation("ReportedBy", fields: [reporterId], references: [id], onDelete: Cascade)
+  reported        User                @relation("ReportedUser", fields: [reportedId], references: [id], onDelete: Cascade)
+
+  @@index([reporterId])
+  @@index([reportedId])
+  @@index([status])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model AdminAuditLog {
+  id              Int                 @id @default(autoincrement())
+  actorId         Int
+  action          String              // ROLE_CHANGE, USER_SUSPEND, USER_REACTIVATE, REPORT_RESOLVED, REPORT_DISMISSED, SKILL_CREATED, SKILL_UPDATED, SETTING_UPDATED
+  targetType      String              // USER, REPORT, SKILL, SETTING
+  targetId        Int?
+  details         String?
+  ipAddress       String?
+  userAgent       String?
+  createdAt       TimestamptzString   @default(now())
+
+  actor           User                @relation(fields: [actorId], references: [id], onDelete: Cascade)
+
+  @@index([actorId])
+  @@index([action])
+  @@index([targetType])
+  @@index([createdAt])
+}
+
+model PlatformSetting {
+  id              Int                 @id @default(autoincrement())
+  key             String              @unique
+  value           String
+  description     String?
+  updatedBy       Int?
+  updatedAt       temporal.updatedAtString()
+
+  @@index([key])
+}
+
+model EmailDeliveryJob {
+  id              Int                 @id @default(autoincrement())
+  recipientEmail  String
+  recipientName   String?
+  template        String              // WELCOME, PASSWORD_RESET, SWAP_REQUEST, SWAP_ACCEPTED, SESSION_SCHEDULED, SESSION_REMINDER, ACCOUNT_SECURITY
+  subject         String
+  payload         String              // JSON string of template variables
+  status          String              @default("PENDING") // PENDING, PROCESSING, SENT, FAILED
+  attempts        Int                 @default(0)
+  maxAttempts     Int                 @default(3)
+  lastError       String?
+  scheduledFor    TimestamptzString   @default(now())
+  sentAt          TimestamptzString?
+  createdAt       TimestamptzString   @default(now())
+
+  @@index([status])
+  @@index([scheduledFor])
+  @@index([createdAt])
+}
+
+model SubscriptionPlan {
+  id                   Int                 @id @default(autoincrement())
+  code                 String              @unique // FREE, PRO, PREMIUM
+  name                 String
+  description          String?
+  monthlyPriceCents    Int                 @default(0)
+  yearlyPriceCents     Int                 @default(0)
+  currency             String              @default("USD")
+  isActive             Boolean             @default(true)
+  features             String              // JSON string array of feature bullets
+  entitlements         String              // JSON string of limits: maxActiveSwaps, advancedFilters, priorityMatching, learningAnalytics
+  stripeMonthlyPriceId String?
+  stripeYearlyPriceId  String?
+  createdAt            TimestamptzString   @default(now())
+  updatedAt            temporal.updatedAtString()
+
+  @@index([code])
+  @@index([isActive])
+}
+
+model UserSubscription {
+  id                     Int                 @id @default(autoincrement())
+  userId                 Int                 @unique
+  planId                 Int
+  planCode               String              @default("FREE") // FREE, PRO, PREMIUM
+  status                 String              @default("FREE") // FREE, TRIALING, ACTIVE, PAST_DUE, CANCELED, EXPIRED
+  billingCycle           String              @default("NONE") // MONTHLY, YEARLY, NONE
+  provider               String              @default("MOCK") // MOCK, STRIPE
+  providerCustomerId     String?
+  providerSubscriptionId String?
+  currentPeriodStart     TimestamptzString?
+  currentPeriodEnd       TimestamptzString?
+  cancelAtPeriodEnd      Boolean             @default(false)
+  canceledAt             TimestamptzString?
+  trialEndsAt            TimestamptzString?
+  createdAt              TimestamptzString   @default(now())
+  updatedAt              temporal.updatedAtString()
+
+  user                   User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  plan                   SubscriptionPlan    @relation(fields: [planId], references: [id], onDelete: Restrict)
+
+  @@index([userId])
+  @@index([planId])
+  @@index([status])
+  @@index([planCode])
+  @@index([providerSubscriptionId])
+}
+
+model PaymentTransaction {
+  id                 Int                 @id @default(autoincrement())
+  userId             Int
+  subscriptionId     Int?
+  providerPaymentId  String?
+  providerInvoiceId  String?
+  amountCents        Int
+  currency           String              @default("USD")
+  status             String              // PENDING, SUCCEEDED, FAILED, REFUNDED
+  paymentMethod      String?
+  errorMessage       String?
+  createdAt          TimestamptzString   @default(now())
+
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription       UserSubscription?   @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([subscriptionId])
+  @@index([status])
+  @@index([providerPaymentId])
+  @@index([createdAt])
+}
+
+model BillingInvoice {
+  id                 Int                 @id @default(autoincrement())
+  userId             Int
+  subscriptionId     Int?
+  providerInvoiceId  String?
+  invoiceNumber      String              @unique
+  amountPaidCents    Int
+  currency           String              @default("USD")
+  status             String              @default("PAID") // PAID, OPEN, VOID, UNCOLLECTIBLE
+  invoicePdfUrl      String?
+  hostedInvoiceUrl   String?
+  periodStart        TimestamptzString?
+  periodEnd          TimestamptzString?
+  paidAt             TimestamptzString?
+  createdAt          TimestamptzString   @default(now())
+
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subscription       UserSubscription?   @relation(fields: [subscriptionId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([subscriptionId])
+  @@index([invoiceNumber])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model BillingWebhookEvent {
+  id                 Int                 @id @default(autoincrement())
+  provider           String              // STRIPE, MOCK
+  eventId            String              @unique
+  eventType          String
+  payload            String
+  status             String              @default("PENDING") // PENDING, PROCESSED, FAILED, DUPLICATE
+  errorMessage       String?
+  processedAt        TimestamptzString?
+  createdAt          TimestamptzString   @default(now())
+
+  @@index([eventId])
+  @@index([eventType])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model UserUsage {
+  id                      Int                 @id @default(autoincrement())
+  userId                  Int                 @unique
+  activeSwapRequestsCount Int                 @default(0)
+  monthlySessionsBooked   Int                 @default(0)
+  cycleResetAt            TimestamptzString   @default(now())
+  createdAt               TimestamptzString   @default(now())
+  updatedAt               temporal.updatedAtString()
+
+  user                    User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model SkillAlias {
+  id               Int                 @id @default(autoincrement())
+  alias            String              @unique
+  canonicalSkillId Int
+  similarityScore  Float               @default(1.0)
+  relationshipType String              @default("ALIAS") // ALIAS, RELATED, PARENT_CHILD
+  isApproved       Boolean             @default(true)
+  createdAt        TimestamptzString   @default(now())
+
+  canonicalSkill   Skill               @relation(fields: [canonicalSkillId], references: [id], onDelete: Cascade)
+
+  @@index([alias])
+  @@index([canonicalSkillId])
+  @@index([isApproved])
+}
+
+model LearningRoadmap {
+  id                  Int                 @id @default(autoincrement())
+  userId              Int
+  skillId             Int?
+  skillName           String
+  currentProficiency  String              // Beginner, Intermediate, Advanced
+  targetProficiency   String              // Intermediate, Advanced, Expert
+  learningObjective   String
+  preferredPace       String              @default("MODERATE") // INTENSIVE, MODERATE, CASUAL
+  estimatedWeeks      Int                 @default(8)
+  status              String              @default("ACTIVE") // ACTIVE, COMPLETED, ARCHIVED
+  progressPercent     Int                 @default(0)
+  createdAt           TimestamptzString   @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill               Skill?              @relation(fields: [skillId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([skillId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model RoadmapMilestone {
+  id                    Int                 @id @default(autoincrement())
+  roadmapId             Int
+  orderIndex            Int
+  title                 String
+  description           String?
+  topics                String              // JSON string array of topics
+  practiceProjects      String              // JSON string array of practice project ideas
+  suggestedSessionGoals String              // JSON string array of session objectives for skill swaps
+  isCompleted           Boolean             @default(false)
+  completedAt           TimestamptzString?
+  createdAt             TimestamptzString   @default(now())
+  updatedAt             temporal.updatedAtString()
+
+  roadmap               LearningRoadmap     @relation(fields: [roadmapId], references: [id], onDelete: Cascade)
+
+  @@index([roadmapId])
+  @@index([orderIndex])
+  @@index([isCompleted])
+}
+
+model RecommendationFeedback {
+  id                Int                 @id @default(autoincrement())
+  userId            Int
+  recommendedUserId Int
+  feedbackType      String              // HELPFUL, NOT_RELEVANT, ALREADY_CONNECTED, NOT_INTERESTED
+  reason            String?
+  createdAt         TimestamptzString   @default(now())
+
+  user              User                @relation("FeedbackUser", fields: [userId], references: [id], onDelete: Cascade)
+  recommendedUser   User                @relation("RecommendedUser", fields: [recommendedUserId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, recommendedUserId])
+  @@index([userId])
+  @@index([recommendedUserId])
+  @@index([feedbackType])
+  @@index([createdAt])
+}
+
+model AIUsageRecord {
+  id                 Int                 @id @default(autoincrement())
+  userId             Int
+  feature            String              // RECOMMENDATION, ROADMAP_GEN, SMART_SCHEDULE, LEARNING_ASSISTANT
+  provider           String              // DETERMINISTIC, GEMINI, OPENAI
+  promptTokens       Int                 @default(0)
+  completionTokens   Int                 @default(0)
+  estimatedCostCents Float               @default(0.0)
+  durationMs         Int                 @default(0)
+  success            Boolean             @default(true)
+  createdAt          TimestamptzString   @default(now())
+
+  user               User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([feature])
+  @@index([createdAt])
+}
+
+model UserXP {
+  id                  Int                 @id @default(autoincrement())
+  userId              Int                 @unique
+  totalXp             Int                 @default(0)
+  currentLevel        Int                 @default(1)
+  createdAt           TimestamptzString   @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([totalXp])
+}
+
+model XPTransaction {
+  id                  Int                 @id @default(autoincrement())
+  userId              Int
+  amount              Int
+  actionType          String              // FIRST_SWAP, SESSION_TEACH, SESSION_LEARN, MILESTONE_COMPLETE, GOAL_COMPLETE, FIRST_REVIEW, ADMIN_ADJUSTMENT
+  idempotencyKey      String              @unique
+  description         String
+  metadata            String?             // JSON string
+  createdAt           TimestamptzString   @default(now())
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([actionType])
+  @@index([createdAt])
+}
+
+model Achievement {
+  id                  Int                 @id @default(autoincrement())
+  code                String              @unique
+  title               String
+  description         String
+  category            String              // LEARNING, TEACHING, COMMUNITY, ROADMAP
+  badgeIcon           String
+  xpReward            Int                 @default(0)
+  criteriaType        String
+  criteriaThreshold   Int                 @default(1)
+  createdAt           TimestamptzString   @default(now())
+
+  @@index([category])
+}
+
+model UserAchievement {
+  id                  Int                 @id @default(autoincrement())
+  userId              Int
+  achievementCode     String
+  achievementId       Int
+  unlockedAt          TimestamptzString   @default(now())
+  isFeatured          Boolean             @default(false)
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  achievement         Achievement         @relation(fields: [achievementId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, achievementCode])
+  @@index([userId])
+  @@index([achievementId])
+}
+
+model LearningGoal {
+  id                  Int                 @id @default(autoincrement())
+  userId              Int
+  title               String
+  description         String?
+  skillId             Int?
+  skillName           String?
+  goalType            String              // SESSIONS_COUNT, HOURS_COUNT, ROADMAP_MILESTONES, CUSTOM
+  targetValue         Int                 @default(1)
+  currentValue        Int                 @default(0)
+  unit                String              @default("sessions") // sessions, hours, milestones, tasks
+  status              String              @default("IN_PROGRESS") // IN_PROGRESS, COMPLETED, ARCHIVED
+  deadline            TimestamptzString?
+  completedAt         TimestamptzString?
+  isAutomated         Boolean             @default(true)
+  createdAt           TimestamptzString   @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  skill               Skill?              @relation(fields: [skillId], references: [id], onDelete: SetNull)
+
+  @@index([userId])
+  @@index([status])
+  @@index([skillId])
+}
+
+model UserStreak {
+  id                  Int                 @id @default(autoincrement())
+  userId              Int                 @unique
+  currentStreak       Int                 @default(0)
+  longestStreak       Int                 @default(0)
+  lastActiveDate      String?             // YYYY-MM-DD
+  isEnabled           Boolean             @default(true)
+  createdAt           TimestamptzString   @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model GamificationPrivacy {
+  id                  Int                 @id @default(autoincrement())
+  userId              Int                 @unique
+  showLevel           Boolean             @default(true)
+  showBadges          Boolean             @default(true)
+  showStats           Boolean             @default(true)
+  showActivityHeatmap Boolean             @default(false)
+  showLearningGoals   Boolean             @default(false)
+  createdAt           TimestamptzString   @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model CommunityPost {
+  id                  Int                 @id @default(autoincrement())
+  authorId            Int
+  skillId             Int?
+  groupId             Int?
+  postType            String              @default("DISCUSSION") // DISCUSSION, QUESTION, RESOURCE
+  title               String
+  content             String
+  tags                String?
+  upvoteCount         Int                 @default(0)
+  commentCount        Int                 @default(0)
+  viewCount           Int                 @default(0)
+  isPinned            Boolean             @default(false)
+  isLocked            Boolean             @default(false)
+  isHidden            Boolean             @default(false)
+  isResolved          Boolean             @default(false)
+  acceptedAnswerId    Int?
+  createdAt           TimestamptzString   @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  author              User                @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  skill               Skill?              @relation(fields: [skillId], references: [id], onDelete: SetNull)
+  group               StudyGroup?         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@index([authorId])
+  @@index([skillId])
+  @@index([groupId])
+  @@index([postType])
+  @@index([createdAt])
+  @@index([upvoteCount])
+  @@index([isHidden])
+}
+
+model CommunityComment {
+  id                  Int                 @id @default(autoincrement())
+  postId              Int
+  authorId            Int
+  parentId            Int?
+  content             String
+  depth               Int                 @default(0)
+  upvoteCount         Int                 @default(0)
+  isAcceptedAnswer    Boolean             @default(false)
+  isDeleted           Boolean             @default(false)
+  createdAt           TimestamptzString   @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  post                CommunityPost       @relation(fields: [postId], references: [id], onDelete: Cascade)
+  author              User                @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([postId])
+  @@index([authorId])
+  @@index([parentId])
+  @@index([createdAt])
+}
+
+model CommunityVote {
+  id                  Int                 @id @default(autoincrement())
+  userId              Int
+  targetType          String              // POST, COMMENT
+  targetId            Int
+  voteType            String              @default("UPVOTE")
+  createdAt           TimestamptzString   @default(now())
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, targetType, targetId])
+  @@index([targetType, targetId])
+  @@index([userId])
+}
+
+model StudyGroup {
+  id                  Int                 @id @default(autoincrement())
+  name                String
+  slug                String              @unique
+  description         String
+  skillId             Int?
+  visibility          String              @default("PUBLIC") // PUBLIC, PRIVATE
+  membershipRules     String?
+  creatorId           Int
+  memberCount         Int                 @default(1)
+  isArchived          Boolean             @default(false)
+  createdAt           TimestamptzString   @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  creator             User                @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  skill               Skill?              @relation(fields: [skillId], references: [id], onDelete: SetNull)
+
+  @@index([skillId])
+  @@index([visibility])
+  @@index([creatorId])
+  @@index([createdAt])
+}
+
+model StudyGroupMember {
+  id                  Int                 @id @default(autoincrement())
+  groupId             Int
+  userId              Int
+  role                String              @default("MEMBER") // OWNER, MODERATOR, MEMBER
+  status              String              @default("ACTIVE") // ACTIVE, PENDING, REJECTED
+  joinedAt            TimestamptzString   @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  group               StudyGroup          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+  @@index([groupId, status])
+  @@index([userId, status])
+}
+
+model GroupSession {
+  id                  Int                 @id @default(autoincrement())
+  groupId             Int
+  hostId              Int
+  title               String
+  description         String?
+  topic               String?
+  startTime           TimestamptzString
+  endTime             TimestamptzString
+  timezone            String              @default("UTC")
+  maxParticipants     Int                 @default(20)
+  status              String              @default("SCHEDULED") // SCHEDULED, LIVE, COMPLETED, CANCELED
+  meetingRoomId       String?
+  meetingUrl          String?
+  cancellationReason  String?
+  createdAt           TimestamptzString   @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  group               StudyGroup          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  host                User                @relation(fields: [hostId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, status])
+  @@index([hostId])
+  @@index([startTime])
+}
+
+model GroupSessionParticipant {
+  id                    Int                 @id @default(autoincrement())
+  sessionId             Int
+  userId                Int
+  status                String              @default("REGISTERED") // REGISTERED, WAITLIST, ATTENDED, ABSENT, CANCELLED
+  isVerifiedAttendance  Boolean             @default(false)
+  joinedAt              TimestamptzString?
+  leftAt                TimestamptzString?
+  notes                 String?
+  createdAt             TimestamptzString   @default(now())
+  updatedAt             temporal.updatedAtString()
+
+  session               GroupSession        @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  user                  User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, userId])
+  @@index([sessionId, status])
+  @@index([userId])
+}
+
+model GroupResource {
+  id                  Int                 @id @default(autoincrement())
+  groupId             Int
+  uploaderId          Int
+  title               String
+  description         String?
+  resourceType        String              @default("LINK") // LINK, NOTE, FILE, IMAGE
+  url                 String?
+  filePath            String?
+  fileName            String?
+  fileSize            Int?
+  mimeType            String?
+  visibility          String              @default("MEMBERS") // MEMBERS, PUBLIC
+  downloadCount       Int                 @default(0)
+  createdAt           TimestamptzString   @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  group               StudyGroup          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  uploader            User                @relation(fields: [uploaderId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, resourceType])
+  @@index([uploaderId])
+  @@index([createdAt])
+}
+
+model GroupTask {
+  id                  Int                 @id @default(autoincrement())
+  groupId             Int
+  creatorId           Int
+  assigneeId          Int?
+  title               String
+  description         String?
+  status              String              @default("TODO") // TODO, IN_PROGRESS, COMPLETED
+  priority            String              @default("MEDIUM") // LOW, MEDIUM, HIGH, URGENT
+  dueDate             TimestamptzString?
+  completedAt         TimestamptzString?
+  createdAt           TimestamptzString   @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  group               StudyGroup          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  creator             User                @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+  assignee            User?               @relation(fields: [assigneeId], references: [id], onDelete: SetNull)
+
+  @@index([groupId, status])
+  @@index([assigneeId])
+  @@index([dueDate])
+}
+
+model GroupMilestone {
+  id                  Int                 @id @default(autoincrement())
+  groupId             Int
+  creatorId           Int
+  title               String
+  description         String?
+  targetDate          TimestamptzString?
+  status              String              @default("TODO") // TODO, IN_PROGRESS, ACHIEVED
+  isVerified          Boolean             @default(false)
+  completedAt         TimestamptzString?
+  createdAt           TimestamptzString   @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  group               StudyGroup          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  creator             User                @relation(fields: [creatorId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, status])
+  @@index([targetDate])
+}
+
+model GroupMessage {
+  id                  Int                 @id @default(autoincrement())
+  groupId             Int
+  senderId            Int
+  content             String
+  isAnnouncement      Boolean             @default(false)
+  isDeleted           Boolean             @default(false)
+  createdAt           TimestamptzString   @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  group               StudyGroup          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  sender              User                @relation(fields: [senderId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, createdAt])
+  @@index([senderId])
+}
+
+model GroupAnnouncement {
+  id                  Int                 @id @default(autoincrement())
+  groupId             Int
+  authorId            Int
+  title               String
+  content             String
+  isPinned            Boolean             @default(false)
+  createdAt           TimestamptzString   @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  group               StudyGroup          @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  author              User                @relation(fields: [authorId], references: [id], onDelete: Cascade)
+
+  @@index([groupId, isPinned])
+  @@index([createdAt])
+}
+
+model PushSubscription {
+  id                  Int                 @id @default(autoincrement())
+  userId              Int
+  endpoint            String
+  p256dh              String
+  auth                String
+  userAgent           String?
+  createdAt           TimestamptzString   @default(now())
+  updatedAt           temporal.updatedAtString()
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, endpoint])
+  @@index([userId])
+}
+
+model PushDeliveryLog {
+  id                  Int                 @id @default(autoincrement())
+  userId              Int
+  endpoint            String
+  eventType           String              // SWAP_REQUEST, MESSAGE, SESSION, REMINDER, ANNOUNCEMENT, TEST
+  payloadJson         String
+  status              String              // DELIVERED, FAILED, EXPIRED, SUPPRESSED
+  statusCode          Int?
+  errorMessage        String?
+  createdAt           TimestamptzString   @default(now())
+
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, createdAt])
+}
+
+
+
+
+

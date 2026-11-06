@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 type Skill = {
   name: string;
   category: string;
@@ -8,7 +10,7 @@ type Skill = {
 const skills: Skill[] = [
   {
     name: "Web Development",
-    category: "Technology",
+    category: "Development",
     learners: 1240,
     icon: "💻",
   },
@@ -26,7 +28,7 @@ const skills: Skill[] = [
   },
   {
     name: "Python",
-    category: "Programming",
+    category: "Development",
     learners: 1100,
     icon: "🐍",
   },
@@ -46,39 +48,40 @@ const skills: Skill[] = [
 
 const PopularSkills = () => {
   return (
-    <section id="discover" className="bg-white py-24">
+    <section id="discover" className="bg-white py-20 sm:py-24">
       <div className="mx-auto max-w-7xl px-6">
-
         <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
           <div>
-            <p className="text-sm font-bold uppercase tracking-widest text-emerald-600">
+            <p className="text-xs font-bold uppercase tracking-widest text-emerald-600 sm:text-sm">
               Discover
             </p>
 
-            <h2 className="mt-3 text-4xl font-bold tracking-tight text-slate-950">
+            <h2 className="mt-2 text-3xl font-bold tracking-tight text-slate-950 sm:text-4xl">
               Skills people are swapping
             </h2>
 
-            <p className="mt-4 max-w-xl text-slate-600">
-              Explore what the community is teaching and learning
-              right now.
+            <p className="mt-2 max-w-xl text-sm text-slate-600 sm:text-base">
+              Explore what the community is teaching and learning right now.
             </p>
           </div>
 
-          <button className="self-start rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 md:self-auto">
+          <Link
+            to="/discover"
+            className="self-start rounded-full border border-slate-300 px-5 py-2.5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50 focus-visible:ring-2 focus-visible:ring-emerald-500 md:self-auto"
+          >
             Explore all skills →
-          </button>
+          </Link>
         </div>
 
         <div className="mt-12 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {skills.map((skill) => (
-            <div
+            <Link
               key={skill.name}
-              className="group cursor-pointer rounded-2xl border border-slate-200 p-5 transition hover:border-slate-300 hover:shadow-lg hover:shadow-slate-100"
+              to={`/discover?category=${encodeURIComponent(skill.category)}`}
+              className="group rounded-2xl border border-slate-200 p-5 transition hover:border-slate-300 hover:shadow-lg hover:shadow-slate-100 focus-visible:ring-2 focus-visible:ring-emerald-500"
             >
               <div className="flex items-center gap-4">
-
-                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-slate-100 text-2xl">
+                <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-slate-100 text-2xl" aria-hidden="true">
                   {skill.icon}
                 </div>
 
@@ -87,27 +90,24 @@ const PopularSkills = () => {
                     {skill.name}
                   </h3>
 
-                  <p className="mt-1 text-sm text-slate-500">
+                  <p className="mt-1 text-xs font-medium text-slate-500">
                     {skill.category}
                   </p>
                 </div>
-
               </div>
 
               <div className="mt-5 flex items-center justify-between border-t border-slate-100 pt-4">
-                <span className="text-sm text-slate-500">
+                <span className="text-xs text-slate-500">
                   {skill.learners.toLocaleString()} learners
                 </span>
 
-                <span className="font-semibold text-slate-400 transition group-hover:translate-x-1 group-hover:text-slate-900">
+                <span className="text-sm font-semibold text-slate-400 transition group-hover:translate-x-1 group-hover:text-slate-900" aria-hidden="true">
                   →
                 </span>
               </div>
-
-            </div>
+            </Link>
           ))}
         </div>
-
       </div>
     </section>
   );

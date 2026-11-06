@@ -9,6 +9,7 @@ type AvailabilityStepProps = {
   onUpdate: (data: AvailabilityData) => void;
   onBack: () => void;
   onFinish: () => void;
+  isSubmitting?: boolean;
 };
 
 const timeSlots: TimeSlot[] = [
@@ -28,6 +29,7 @@ const AvailabilityStep = ({
   onUpdate,
   onBack,
   onFinish,
+  isSubmitting = false,
 }: AvailabilityStepProps) => {
   const toggleSlot = (
     day: string,
@@ -44,7 +46,6 @@ const AvailabilityStep = ({
 
         return {
           ...dayAvailability,
-
           slots: slotExists
             ? dayAvailability.slots.filter(
                 (currentSlot) => currentSlot !== slot
@@ -199,6 +200,10 @@ const AvailabilityStep = ({
               India — Asia/Kolkata
             </option>
 
+            <option value="UTC">
+              Coordinated Universal Time — UTC
+            </option>
+
             <option value="Europe/London">
               United Kingdom — Europe/London
             </option>
@@ -225,7 +230,8 @@ const AvailabilityStep = ({
         <button
           type="button"
           onClick={onBack}
-          className="rounded-xl px-5 py-3 font-semibold text-slate-600 transition hover:bg-slate-100"
+          disabled={isSubmitting}
+          className="rounded-xl px-5 py-3 font-semibold text-slate-600 transition hover:bg-slate-100 disabled:opacity-50"
         >
           ← Back
         </button>
@@ -233,10 +239,17 @@ const AvailabilityStep = ({
         <button
           type="button"
           onClick={onFinish}
-          disabled={!hasAvailability}
-          className="rounded-xl bg-emerald-500 px-7 py-3 font-semibold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-white"
+          disabled={!hasAvailability || isSubmitting}
+          className="flex items-center gap-2 rounded-xl bg-emerald-500 px-7 py-3 font-semibold text-slate-950 transition hover:bg-emerald-400 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-white"
         >
-          Finish setup →
+          {isSubmitting ? (
+            <>
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-slate-950 border-t-transparent" />
+              <span>Completing setup...</span>
+            </>
+          ) : (
+            <span>Finish setup →</span>
+          )}
         </button>
       </div>
     </div>

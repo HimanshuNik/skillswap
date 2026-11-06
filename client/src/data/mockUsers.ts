@@ -1,3 +1,7 @@
+/**
+ * @deprecated Mock data kept for reference only.
+ * Production pages (Discover, Matches, Profile) now consume real database records via API.
+ */
 import type { User } from "../types/user";
 
 export const mockUsers: User[] = [

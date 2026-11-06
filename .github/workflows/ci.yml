@@ -1,0 +1,106 @@
+name: SkillSwap CI/CD Pipeline
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ==========================================
+  # Client: Lint, Typecheck, and Production Build
+  # ==========================================
+  frontend-build:
+    name: Frontend Quality & Build
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./client
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: client/package-lock.json
+
+      - name: Install Client Dependencies
+        run: npm ci
+
+      - name: Run Frontend Linter (ESLint)
+        run: npm run lint
+
+      - name: Build Production SPA Bundle (Vite)
+        run: npm run build
+        env:
+          VITE_API_URL: /api
+          VITE_SOCKET_URL: /
+
+  # ==========================================
+  # Server: Build, Contract Verification, and Automated Tests
+  # ==========================================
+  backend-test-and-build:
+    name: Backend Build, Contract & Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./server
+
+    services:
+      postgres:
+        image: postgres:15-alpine
+        env:
+          POSTGRES_USER: skillswap_test
+          POSTGRES_PASSWORD: skillswap_test_password
+          POSTGRES_DB: skillswap_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Checkout Source Code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js 22 LTS
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      - name: Install Backend Dependencies
+        run: npm ci
+
+      - name: Emit Prisma Contract
+        run: npx prisma contract emit
+
+      - name: Verify Database Schema
+        run: npx prisma db update --accept-data-loss
+        env:
+          DATABASE_URL: postgresql://skillswap_test:skillswap_test_password@localhost:5432/skillswap_test?schema=public
+
+      - name: Compile Backend TypeScript
+        run: npm run build
+
+      - name: Run Backend Integration & Unit Tests
+        run: npm test
+        env:
+          DATABASE_URL: postgresql://skillswap_test:skillswap_test_password@localhost:5432/skillswap_test?schema=public
+          JWT_SECRET: ci_test_jwt_secret_must_be_at_least_32_characters_long_ci!
+          CSRF_SECRET: ci_test_csrf_secret_must_be_at_least_32_characters_long_ci!
+          PORT: 5000
+          CORS_ORIGIN: http://localhost:5173
+          NODE_ENV: test
+

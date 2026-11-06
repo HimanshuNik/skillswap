@@ -1,0 +1,63 @@
+{
+  "name": "SkillSwap — Peer-to-Peer Skill Exchange",
+  "short_name": "SkillSwap",
+  "description": "Exchange skills, learn collaboratively, and mentor peers without monetary transactions.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f8fafc",
+  "theme_color": "#4f46e5",
+  "categories": ["education", "productivity", "social"],
+  "icons": [
+    {
+      "src": "/icons/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-maskable.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "My Dashboard",
+      "short_name": "Dashboard",
+      "description": "View active swaps and upcoming learning sessions",
+      "url": "/dashboard",
+      "icons": [{ "src": "/icons/icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Discover Skills",
+      "short_name": "Discover",
+      "description": "Browse peer mentors and skills directory",
+      "url": "/discover",
+      "icons": [{ "src": "/icons/icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Learning Sessions",
+      "short_name": "Sessions",
+      "description": "Manage scheduled 1-on-1 and group video meetings",
+      "url": "/sessions",
+      "icons": [{ "src": "/icons/icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "Community Hub",
+      "short_name": "Community",
+      "description": "Participate in discussion forums and study groups",
+      "url": "/community",
+      "icons": [{ "src": "/icons/icon-192.svg", "sizes": "192x192" }]
+    }
+  ]
+}
+
